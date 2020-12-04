@@ -1,12 +1,13 @@
 #include "BaseNetworkLogic.cpp"
 #include <ws2tcpip.h>
-#include "Game.h"
+#include "Lobby.h"
 
 int main(int argc, char* argv[])
 {
 #pragma region Members
 	BaseNetworkLogic mSL;
-	Game mTicTacToe;
+	Match mTicTacToe;
+	Lobby mLobby;
 
 	struct sockaddr_in mServerAddr;
 	SOCKET mClientSocket;
@@ -30,24 +31,26 @@ int main(int argc, char* argv[])
 
 	sendto(mClientSocket, message, strlen(message), 0, (sockaddr*)&mServerAddr, sizeof(mServerAddr));
 
+	mLobby.RegisterPlayer("Hola");
+	mLobby.RegisterPlayer("Hola2");
+
+	mTicTacToe.StartMatch(mLobby.GetMatchedPlayers());
+
 	mTicTacToe.Draw();
 	int position;
-
-	mTicTacToe.SetPlayer("POne");
-	mTicTacToe.SetPlayer("PTwo");
 
 	do
 	{
 		cout << "Player One's Turn" << endl;
 		cin >> position;
-		mTicTacToe.Input(position, mTicTacToe.GetPlayer("POne"));
+		mTicTacToe.Input(position, mTicTacToe.GetPlayer("Hola"));
 		cout.clear();
 		mTicTacToe.Draw();
 
 
 		cout << "Player Two's Turn" << endl;
 		cin >> position;
-		mTicTacToe.Input(position, mTicTacToe.GetPlayer("PTwo"));
+		mTicTacToe.Input(position, mTicTacToe.GetPlayer("Hola2"));
 		cout.clear();
 		mTicTacToe.Draw();
 	}
