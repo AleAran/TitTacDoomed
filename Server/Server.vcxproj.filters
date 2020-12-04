@@ -16,6 +16,9 @@
     <Filter Include="Source Files\Common">
       <UniqueIdentifier>{2ad04906-c714-48c7-bfc0-a1f48bfd6c86}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Common">
+      <UniqueIdentifier>{1c00dd83-05b1-4642-9859-2268373fe308}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -27,7 +30,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\BaseNetworkLogic.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Packets.h">
+      <Filter>Header Files\Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
