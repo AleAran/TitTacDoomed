@@ -6,6 +6,36 @@
 using namespace std;
 #define DEFAULT_BUFLEN 512
 
+unsigned __stdcall ClientHandler(void* data)
+{
+	Packet recvbuf[sizeof(Packet)];
+	int recvbuflen = sizeof(Packet);
+
+	SOCKET mClientSocket = (SOCKET)data;
+
+	int mConnectionValue = 1;
+	int mSendValue;
+
+	memset(&recvbuf, 0, recvbuflen);
+	mConnectionValue = recv(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
+	if (mConnectionValue > 0) {
+		cout<<"Sucess! bytes received = " + mConnectionValue<<endl;
+
+		// Echo the buffer back to the sender
+		mSendValue = send(mClientSocket, (char*)&recvbuf, mConnectionValue, 0);
+		if (mSendValue == SOCKET_ERROR) {
+			printf("Error! bytes not sent");
+		}
+		cout << "Sucess! bytes received = " + mSendValue << endl;
+	}
+
+	else {
+		printf("Error! " + WSAGetLastError());
+		return 1;
+	}
+}
+
+
 int main(int argc, char* argv[])
 {
 #pragma region Members
@@ -16,11 +46,9 @@ int main(int argc, char* argv[])
 
 	//Integer that contains the length of structure pointed to by the addr parameter.
 	int mSizeOfAddrStruct = sizeof(struct addrinfo);
-	Packet recvbuf[sizeof(Packet)];
-	int recvbuflen = sizeof(Packet);
 
-	int mConnectionValue = 0;
-	int mSendValue;
+
+	int mConnectionValue = 1;
 
 #pragma endregion
 
@@ -37,33 +65,11 @@ int main(int argc, char* argv[])
 	listen(mServerSocket, 3);
 
 	// Accept a client socket
-	mClientSocket = accept(mServerSocket, NULL, NULL);
-	if (mClientSocket == INVALID_SOCKET) {
-		return 1;
+	while (mClientSocket = accept(mServerSocket, NULL, NULL)) 
+	{
+		unsigned threadID;
+		HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ClientHandler, (void*)mClientSocket, 0, &threadID);
 	}
-	
-	do {
-		memset(&recvbuf, 0, recvbuflen);
-		mConnectionValue = recv(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
-		if (mConnectionValue > 0) {
-			printf("Sucess! bytes received = " + mConnectionValue);
-
-			// Echo the buffer back to the sender
-			mSendValue = send(mClientSocket, (char*)&recvbuf, mConnectionValue, 0);
-			if (mSendValue == SOCKET_ERROR) {
-				printf("Error! bytes not sent");
-			}
-			printf("Sucess! bytes received = " + mSendValue);
-		}
-
-		else {
-			printf("Error! " + WSAGetLastError());
-			return 1;
-		}
-
-
-	} while (mConnectionValue > 0);
-
 
 	closesocket(mClientSocket);
 
@@ -74,4 +80,3 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
-
