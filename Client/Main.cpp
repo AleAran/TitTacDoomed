@@ -33,21 +33,25 @@ int main(int argc, char* argv[])
 	mTicTacToe.Draw();
 	int position;
 
+	mTicTacToe.SetPlayer("POne");
+	mTicTacToe.SetPlayer("PTwo");
+
 	do
 	{
 		cout << "Player One's Turn" << endl;
 		cin >> position;
-		mTicTacToe.Input(position, Player::PLAYER_ONE);
+		mTicTacToe.Input(position, mTicTacToe.GetPlayer("POne"));
 		cout.clear();
 		mTicTacToe.Draw();
 
+
 		cout << "Player Two's Turn" << endl;
 		cin >> position;
-		mTicTacToe.Input(position, Player::PLAYER_TWO) ;
+		mTicTacToe.Input(position, mTicTacToe.GetPlayer("PTwo"));
 		cout.clear();
 		mTicTacToe.Draw();
 	}
-	while (!mTicTacToe.CheckResult(Player::PLAYER_ONE));
+	while (!mTicTacToe.CheckResult());
 
 
 	return 0;

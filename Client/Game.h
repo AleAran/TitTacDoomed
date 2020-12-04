@@ -1,14 +1,8 @@
-#pragma 
-#include <string>
+#pragma once
 #include <iostream>
+#include "Player.h"
 
 using namespace std;
-
-enum class Player
-{
-	PLAYER_ONE,
-	PLAYER_TWO
-};
 
 struct Slot
 {
@@ -23,9 +17,14 @@ public:
 	~Game();
 	void Draw();
 	void Input(int position, Player player);
-	bool CheckResult(Player player);
+	bool CheckResult();
+	void SetPlayer(string name);
+	Player GetPlayer(string name);
 
 private:
 	Slot mSlots[3][3];
+	Player mPlayer;
+	Player mPlayer2;
 
+	void ResultMessage(string Value);
 };

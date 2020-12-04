@@ -35,20 +35,19 @@ void Game::Input(int position, Player player)
 	{
 		for (size_t j = 0; j < sizeof(mSlots[0]) / sizeof(Slot); j++)
 		{
-			mSlots[i][j].mValue = (mSlots[i][j].mPosition == position)? (player == Player::PLAYER_ONE)? "X" : "O" : mSlots[i][j].mValue;
+			mSlots[i][j].mValue = (mSlots[i][j].mPosition == position)? (player.GetPosition() == PlayerPosition::PLAYER_ONE)? "X" : "O" : mSlots[i][j].mValue;
 		}
 	}
 }
 
- bool Game::CheckResult(Player player)
+ bool Game::CheckResult()
 {
-	string playerName = (player == Player::PLAYER_ONE) ? "Player One" : "Player Two";
 
 	for (size_t i = 0; i < sizeof(mSlots) / sizeof(mSlots[0]); i++)
 	{
 		if (mSlots[i][0].mValue == mSlots[i][1].mValue && mSlots[i][0].mValue == mSlots[i][2].mValue && mSlots[i][0].mValue != " ")
 		{
-			cout << playerName + " Wins!!!!" << endl;
+			ResultMessage(mSlots[i][0].mValue);
 			return true;
 		}
 	}
@@ -57,22 +56,49 @@ void Game::Input(int position, Player player)
 	{
 		if (mSlots[0][i].mValue == mSlots[1][i].mValue && mSlots[0][i].mValue == mSlots[2][i].mValue && mSlots[0][i].mValue != " ")
 		{
-			cout << playerName + " Wins!!!!" << endl;
+			ResultMessage(mSlots[0][i].mValue);
 			return true;
 		}
 	}
 
 	if (mSlots[0][0].mValue == mSlots[1][1].mValue && mSlots[0][0].mValue == mSlots[2][2].mValue && mSlots[0][0].mValue != " ")
 	{
-		cout << playerName + " Wins!!!!" << endl;
+		ResultMessage(mSlots[0][0].mValue);
 		return true;
 	}
 
 	if (mSlots[0][2].mValue == mSlots[1][1].mValue && mSlots[0][2].mValue == mSlots[2][0].mValue && mSlots[0][2].mValue !=  " ")
 	{
-		cout << playerName + " Wins!!!!" << endl;
+		ResultMessage(mSlots[0][2].mValue);
 		return true;
 	}
 
 	return false;
 }
+
+ void Game::SetPlayer(string name)
+ {
+	 if (mPlayer.GetPosition() == PlayerPosition::UNDEFINED)
+	 {
+		 mPlayer.SetPosition(PlayerPosition::PLAYER_ONE);
+		 mPlayer.SetName(name);
+	 }
+	 else
+	 {
+		 mPlayer2.SetPosition(PlayerPosition::PLAYER_TWO);
+		 mPlayer2.SetName(name);
+	 }
+
+ }
+
+ Player Game::GetPlayer(string name)
+ {
+	 return (name == mPlayer.GetName())? mPlayer : mPlayer2;
+ }
+
+ void Game::ResultMessage(string Value)
+ {
+	 string playerName = (Value == "X") ? mPlayer.GetName() : mPlayer2.GetName();
+
+	 cout << playerName + " Wins!!!!" << endl;
+ }
