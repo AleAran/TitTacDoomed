@@ -31,6 +31,8 @@ int main(int argc, char* argv[])
 
 	mClientSocket = mSL.createSocket();
 
+	memset(&recvbuf, 0, recvbuflen);
+
 	if (connect(mClientSocket, (struct sockaddr*)&mServerAddr, sizeof(mServerAddr)) == SOCKET_ERROR) {
 		closesocket(mClientSocket);
 		mClientSocket = INVALID_SOCKET;
@@ -87,7 +89,7 @@ int main(int argc, char* argv[])
 				mPlayerOrder = GameState::PLAYER_TWO;
 				cout << "Your are (O), enter values from 0 to 8 to mark a Slot." << endl;
 			}
-			playerbuf->name = mName;
+
 			playerbuf->cmdState = Command::START_GAME;
 			send(mClientSocket, (char*)&playerbuf, playerbuflen, 0);
 			break;
