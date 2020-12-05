@@ -3,6 +3,7 @@
 #include "Game.h"
 #include <iostream>
 #include <thread>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -12,6 +13,8 @@ struct GameBundle
 	SOCKET clientSocket;
 	sockaddr_in clientAddr;
 	int clientSize;
+	GenericPacket recvbuf;
+	PlayerPacket playerbuf;
 };
 
 
@@ -35,16 +38,101 @@ bool Broadcast(MatchedPlayers players, GenericPacket recvbuf, int recvbuflen)
 	return true;
 }
 
-unsigned __stdcall ClientHandler(void* data)
+unsigned __stdcall GenericPacketHanlder(void* data)
+{
+
+	int recvbuflen = sizeof(GenericPacket);
+
+
+	GameBundle* mBundle = (GameBundle*)data;
+	GenericPacket* recvbuf = &mBundle->recvbuf;
+	SOCKET mClientSocket = mBundle->clientSocket;
+	sockaddr_in mClientAddr = mBundle->clientAddr;
+
+	int clientSize = mBundle->clientSize;
+	Game* mGame = mBundle->ticTacToe;
+
+	Match* match;
+	int mConnectionValue = 1;
+	int mSendValue;
+
+	switch (recvbuf->gameState)
+	{
+	case GameState::CONNECTED:
+		memset(&recvbuflen, 0, sizeof(GenericPacket));
+		recvbuf->gameState = GameState::LOBBY;
+		recvbuf->aux = 0;
+
+		unsigned char buffer[sizeof(GenericPacket)];
+		memcpy(&buffer, &recvbuf, sizeof(recvbuf));
+
+
+		mSendValue = sendto(mClientSocket, (char*)&recvbuf, recvbuflen, 0, (struct sockaddr*)&mClientAddr, clientSize);
+
+		if (mSendValue == SOCKET_ERROR) {
+			printf("Error! bytes not sent");
+		}
+
+		break;
+
+	case GameState::PLAYER_ONE:
+
+		match = mGame->GetMatch(recvbuf->textAux);
+		match->Input(recvbuf->aux, match->GetPlayer(recvbuf->textAux));
+
+		if (match->CheckResult())
+		{
+			recvbuf->gameState = GameState::FINISH;
+		}
+		else
+		{
+			recvbuf->textAux = "X";
+			recvbuf->gameState = GameState::PLAYER_TWO;
+		}
+
+		Broadcast(match->GetPlayers(), *recvbuf, recvbuflen);
+		break;
+
+	case GameState::PLAYER_TWO:
+
+		match = mGame->GetMatch(recvbuf->textAux);
+		match->Input(recvbuf->aux, match->GetPlayer(recvbuf->textAux));
+
+		if (match->CheckResult())
+		{
+			recvbuf->gameState = GameState::FINISH;
+		}
+		else
+		{
+			recvbuf->textAux = "X";
+			recvbuf->gameState = GameState::PLAYER_ONE;
+		}
+
+		Broadcast(match->GetPlayers(), *recvbuf, recvbuflen);
+
+		break;
+	case GameState::FINISH:
+		break;
+	default:
+		break;
+
+	}
+
+	//If we don't end the thread, things could get messy;
+	_endthreadex(0);
+	return 1;
+}
+
+unsigned __stdcall PlayerPacketHanlder(void* data)
 {
 	GenericPacket recvbuf[sizeof(GenericPacket)];
 	int recvbuflen = sizeof(GenericPacket);
 
-	PlayerPacket playerbuf[sizeof(PlayerPacket)];
 	int playerbuflen = sizeof(PlayerPacket);
 
-	GameBundle *mBundle = (GameBundle*)data;
+	GameBundle* mBundle = (GameBundle*)data;
 
+	PlayerPacket* playerbuf = &mBundle->playerbuf;
 	SOCKET mClientSocket = mBundle->clientSocket;
 	sockaddr_in mClientAddr = mBundle->clientAddr;
 	int clientSize = mBundle->clientSize;
@@ -53,68 +141,6 @@ unsigned __stdcall ClientHandler(void* data)
 	int mConnectionValue = 1;
 	int mSendValue;
 
-	mConnectionValue = recv(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
-	if (mConnectionValue > 0) {
-		cout << "Sucess! bytes received = " + mConnectionValue << endl;
-
-		switch (recvbuf->gameState)
-		{
-		case GameState::CONNECTED:
-			recvbuf->gameState = GameState::LOBBY;
-			recvbuf->aux = 0;
-			mSendValue = send(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
-
-			if (mSendValue == SOCKET_ERROR) {
-				printf("Error! bytes not sent");
-			}
-
-			break;
-
-		case GameState::PLAYER_ONE:
-
-			match = mGame->GetMatch(recvbuf->textAux);
-			match->Input(recvbuf->aux, match->GetPlayer(recvbuf->textAux));
-
-			if (match->CheckResult())
-			{
-				recvbuf->gameState = GameState::FINISH;
-			}
-			else
-			{
-				recvbuf->textAux = "X";
-				recvbuf->gameState = GameState::PLAYER_TWO;
-			}
-
-			Broadcast(match->GetPlayers(), *recvbuf, recvbuflen);
-			break;
-
-		case GameState::PLAYER_TWO:
-
-			match = mGame->GetMatch(recvbuf->textAux);
-			match->Input(recvbuf->aux, match->GetPlayer(recvbuf->textAux));
-
-			if (match->CheckResult())
-			{
-				recvbuf->gameState = GameState::FINISH;
-			}
-			else
-			{
-				recvbuf->textAux = "X";
-				recvbuf->gameState = GameState::PLAYER_ONE;
-			}
-
-			Broadcast(match->GetPlayers(), *recvbuf, recvbuflen);
-
-			break;
-		case GameState::FINISH:
-			break;
-		default:
-			break;
-		}
-	}
-
-	mConnectionValue = recv(mClientSocket, (char*)&playerbuf, playerbuflen, 0);
-	if (mConnectionValue > 0) {
 		cout << "Sucess! bytes received = " + mConnectionValue << endl;
 		switch (playerbuf->cmdState)
 		{
@@ -122,7 +148,7 @@ unsigned __stdcall ClientHandler(void* data)
 			if (mGame->mLobby.RegisterPlayer(playerbuf->name, mClientSocket, clientSize, mClientAddr))
 			{
 				mGame->CreateMatch(mGame->mLobby.GetMatchedPlayers());
-				Match* match = mGame->GetMatch(playerbuf->name);
+				match = mGame->GetMatch(playerbuf->name);
 				recvbuf->gameState = GameState::COIN_TOSS;
 				recvbuf->aux = 0;
 				Broadcast(match->GetPlayers(), *recvbuf, recvbuflen);
@@ -131,31 +157,35 @@ unsigned __stdcall ClientHandler(void* data)
 
 		case Command::REENTER_PLAYER:
 			mGame->mLobby.ReenterPlayer(playerbuf->name);
-
 			break;
 
 		case Command::START_GAME:
+
+			mGame->CreateMatch(mGame->mLobby.GetMatchedPlayers());
+			match = mGame->GetMatch(playerbuf->name);
 			recvbuf->gameState = GameState::PLAYER_ONE;
-			recvbuf->aux = -1;
-			send(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
+			recvbuf->aux = 0;
+			Broadcast(match->GetPlayers(), *recvbuf, recvbuflen);
 
 			break;
 		default:
 			break;
 		}
-	}
-	else 
-	{
-		printf("Error! " + WSAGetLastError());
-		return 1;
-	}
+	
 	//If we don't end the thread, things could get messy;
 	_endthreadex(0);
+	return 1;
 }
 
 int main(int argc, char* argv[])
 {
 #pragma region Members
+	GenericPacket recvbuf[sizeof(GenericPacket)];
+	int recvbuflen = sizeof(GenericPacket);
+
+	PlayerPacket playerbuf[sizeof(PlayerPacket)];
+	int playerbuflen = sizeof(PlayerPacket);
+
 	BaseNetworkLogic mSL;
 	Game mTicTacToe;
 	
@@ -183,15 +213,39 @@ int main(int argc, char* argv[])
 	//We put this socket on listening mode
 	listen(mServerSocket, 3);
 
-	// Accept a client socket
+
+	unsigned long mode = 1;
+	ioctlsocket(mServerSocket, FIONBIO, &mode);
+
+	// Accept a client socketfcntl() 
 	while (mClientSocket = accept(mServerSocket, (struct sockaddr*)&mClientAddr, &clientSize))
 	{
-		mBundle.clientSocket = mClientSocket;
-		mBundle.clientAddr = mClientAddr;
-		mBundle.clientSize = clientSize;
+		mConnectionValue = recv(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
+		if (mConnectionValue>0)
+		{
+			mBundle.clientSocket = mClientSocket;
+			mBundle.clientAddr = mClientAddr;
+			mBundle.clientSize = clientSize;
+			mBundle.recvbuf = *recvbuf;
+			mBundle.playerbuf = *playerbuf;
 
-		unsigned threadID;
-		HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ClientHandler, &mBundle, 0, &threadID);
+			unsigned threadID;
+			HANDLE Thread = (HANDLE)_beginthreadex(NULL, 0, &GenericPacketHanlder, (void*)&mBundle, 0, &threadID);
+		}
+
+		mConnectionValue = recv(mClientSocket, (char*)&playerbuf, playerbuflen, 0);
+		if (mConnectionValue>0)
+		{
+			mBundle.clientSocket = mClientSocket;
+			mBundle.clientAddr = mClientAddr;
+			mBundle.clientSize = clientSize;
+			mBundle.playerbuf = *playerbuf;
+			mBundle.recvbuf = *recvbuf;
+
+			unsigned threadID;
+			HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &PlayerPacketHanlder, &mBundle, 0, &threadID);
+		}
+
 	}
 
 	closesocket(mClientSocket);
