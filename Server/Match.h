@@ -23,8 +23,8 @@ public:
 
 	void StartMatch(MatchedPlayers players);
 	void Input(int position, Player *player);
-	void Draw();
 	bool CheckResult();
+	MatchedPlayers GetPlayers() { return mPlayers; };
 
 	Player* GetPlayer(string name);
 

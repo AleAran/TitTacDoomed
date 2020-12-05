@@ -1,0 +1,5 @@
+﻿  Main.cpp
+  Player.cpp
+  Generating Code...
+C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\Server\Main.cpp(112): warning C4715: 'ClientHandler': not all control paths return a value
+  Server.vcxproj -> C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\x64\Debug\Server.exe

@@ -35,17 +35,6 @@ void Match::Input(int position, Player *player)
 	}
 }
 
-void Match::Draw()
-{
-	std::cout << endl
-		<< " " + mSlots[0][0].mValue + " | " + mSlots[0][1].mValue + " | " + mSlots[0][2].mValue + " " << endl
-		<< "-----------" << endl
-		<< " " + mSlots[1][0].mValue + " | " + mSlots[1][1].mValue + " | " + mSlots[1][2].mValue + " " << endl
-		<< "-----------" << endl
-		<< " " + mSlots[2][0].mValue + " | " + mSlots[2][1].mValue + " | " + mSlots[2][2].mValue + " " << endl
-		<< endl;
-}
-
  bool Match::CheckResult()
 {
 

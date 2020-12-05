@@ -1,8 +1,8 @@
-#include "BaseNetworkLogic.cpp"
-#include "Packets.h"
 #include <iostream>
+#include "..\Server\Common\BaseNetworkLogic.cpp"
+#include "..\Server\Common\Packets.h"
+#include "Renderer.h"
 
-#define DEFAULT_BUFLEN 512
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -41,6 +41,7 @@ int main(int argc, char* argv[])
 	}
 #pragma region Connect To server
 
+	Renderer mGrid;
 
 	recvbuf->aux = 0;
 	recvbuf->gameState = GameState::CONNECTED;
@@ -77,6 +78,7 @@ int main(int argc, char* argv[])
 			break;
 
 		case GameState::GAME:
+			mGrid.Draw();
 			break;
 		case GameState::FINISH:
 			break;
@@ -85,29 +87,6 @@ int main(int argc, char* argv[])
 		}
 
 	} while (mEndSession < 1 );
-
-	//mTicTacToe.StartMatch(mLobby.GetMatchedPlayers());
-
-	/*mTicTacToe.Draw();
-	int position;
-
-	do
-	{
-		cout << "Player One's Turn" << endl;
-		cin >> position;
-		mTicTacToe.Input(position, mTicTacToe.GetPlayer("Hola"));
-		cout.clear();
-		mTicTacToe.Draw();
-
-
-		cout << "Player Two's Turn" << endl;
-		cin >> position;
-		mTicTacToe.Input(position, mTicTacToe.GetPlayer("Hola2"));
-		cout.clear();
-		mTicTacToe.Draw();
-	}
-	while (!mTicTacToe.CheckResult());*/
-
 
 	return 0;
 }

@@ -1,19 +1,24 @@
 #include "Lobby.h"
 
-string Lobby::StatusMessage() 
-{ 
-	return " ";
-}
-
-void Lobby::RegisterPlayer(string name)
+bool Lobby::RegisterPlayer(string name, SOCKET mSocket, int size, sockaddr_in addr)
 {
 	Player *newPlayer = new Player;
+	newPlayer->SetLogInInfo(mSocket, addr, size);
 	newPlayer->SetName(name);
 	newPlayer->SetPosition((mPlayerWaiting) ? PlayerPosition::PLAYER_TWO : PlayerPosition::PLAYER_ONE);
 	mPlayers.push_back(newPlayer);
 
-	if (!mPlayerWaiting) 
+	if (!mPlayerWaiting)
+	{
 		mPlayerWaiting = true;
+		return false;
+	}
+		
+	else
+	{
+		mPlayerWaiting = false;
+		return true;
+	}
 }
 
 MatchedPlayers Lobby::GetMatchedPlayers()
@@ -31,17 +36,14 @@ MatchedPlayers Lobby::GetMatchedPlayers()
 				playersReady.mMatchedPlayers[index] = *it;
 				index++;
 			}
+
 			if (index == 2)
 			{
 				return playersReady;
 			}
 		}
 	}
-
-	return MatchedPlayers();
 }
-
-
 
 
 Lobby::Lobby()

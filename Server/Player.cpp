@@ -10,3 +10,10 @@ Player::Player()
 Player::~Player()
 {
 }
+
+void Player::SetLogInInfo(SOCKET dataId, sockaddr_in clientAddr, int size)
+{
+	mDataId.clientSize = size;
+	mDataId.clientSocket = dataId;
+	mDataId.mClientAddr = clientAddr;
+}

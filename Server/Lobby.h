@@ -2,7 +2,6 @@
 #include <string>
 #include <list>
 #include "Match.h"
-
 using namespace std;
 
 class Lobby
@@ -10,9 +9,10 @@ class Lobby
 public:
 	Lobby();
 	~Lobby();
-	string StatusMessage();
-	void RegisterPlayer(string name);
+
+	bool RegisterPlayer(string name, SOCKET mSocket, int size, sockaddr_in addr);
 	MatchedPlayers GetMatchedPlayers();
+
 
 private:
 	list<Player*> mPlayers;
