@@ -154,7 +154,6 @@
     <ClInclude Include="Common\Packets.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Lobby.h" />
-    <ClInclude Include="Main.h" />
     <ClInclude Include="Match.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
