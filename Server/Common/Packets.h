@@ -7,27 +7,22 @@ enum class GameState
 	COIN_TOSS,
 	PLAYER_ONE,
 	PLAYER_TWO,
-	LOBBY,
-	IDLE,
-	FINISH
+	LOBBY, 
+	FINISH,
+	REGISTER_PLAYER,
+	START_GAME,
+	REENTER_PLAYER,
+	
 };
 
 enum class Command
 {
-	REGISTER_PLAYER,
-	START_GAME,
-	REENTER_PLAYER
+
 };
 
 struct GenericPacket
 {
-	GameState gameState;
+	uint32_t gameState;
 	short int aux;
-	std::string textAux;
-};
-
-struct PlayerPacket
-{
-	Command cmdState;
-	std::string name;
+	char textAux[255];
 };
