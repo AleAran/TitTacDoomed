@@ -1,3 +1,5 @@
 ﻿  Main.cpp
-C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\Client\Main.cpp(26,6): warning C4101: 'mSendValue': unreferenced local variable
+C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\Client\Main.cpp(28,6): warning C4101: 'mSendValue': unreferenced local variable
+  Renderer.cpp
+  Generating Code...
   Client.vcxproj -> C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\x64\Debug\Client.exe
