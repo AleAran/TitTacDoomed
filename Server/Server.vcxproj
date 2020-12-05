@@ -142,11 +142,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Common\BaseNetworkLogic.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Lobby.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Match.cpp" />
+    <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\BaseNetworkLogic.h" />
     <ClInclude Include="Common\Packets.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="Lobby.h" />
+    <ClInclude Include="Main.h" />
+    <ClInclude Include="Match.h" />
+    <ClInclude Include="Player.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

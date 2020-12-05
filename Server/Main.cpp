@@ -1,17 +1,29 @@
 #include "Common\BaseNetworkLogic.h"
 #include "Common/Packets.h"
+#include "Game.h"
 #include <iostream>
 #include <thread>
 
 using namespace std;
-#define DEFAULT_BUFLEN 512
+
+struct GameBundle
+{
+	Game* ticTacToe;
+	SOCKET clientSocket;
+};
 
 unsigned __stdcall ClientHandler(void* data)
 {
-	Packet recvbuf[sizeof(Packet)];
-	int recvbuflen = sizeof(Packet);
+	GenericPacket recvbuf[sizeof(GenericPacket)];
+	int recvbuflen = sizeof(GenericPacket);
 
-	SOCKET mClientSocket = (SOCKET)data;
+	PlayerPacket playerbuf[sizeof(PlayerPacket)];
+	int playerbuflen = sizeof(PlayerPacket);
+
+	GameBundle *mBundle = (GameBundle*)data;
+
+	SOCKET mClientSocket = mBundle->clientSocket;
+	Game* mGame = mBundle->ticTacToe;
 
 	int mConnectionValue = 1;
 	int mSendValue;
@@ -19,36 +31,75 @@ unsigned __stdcall ClientHandler(void* data)
 	memset(&recvbuf, 0, recvbuflen);
 	mConnectionValue = recv(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
 	if (mConnectionValue > 0) {
-		cout<<"Sucess! bytes received = " + mConnectionValue<<endl;
+		cout << "Sucess! bytes received = " + mConnectionValue << endl;
 
-		// Echo the buffer back to the sender
+		switch (recvbuf->gameState)
+		{
+		case GameState::CONNECTED:
+			recvbuf->gameState = GameState::LOBBY;
+			recvbuf->aux = 0;
+			mSendValue = send(mClientSocket, (char*)&recvbuf, mConnectionValue, 0);
+			if (mSendValue == SOCKET_ERROR) {
+				printf("Error! bytes not sent");
+			}
+
+			break;
+		case GameState::LOBBY:
+			break;
+
+		case GameState::GAME:
+			break;
+		case GameState::FINISH:
+			break;
+		default:
+			break;
+		}
+
+	/*	// Echo the buffer back to the sender
 		mSendValue = send(mClientSocket, (char*)&recvbuf, mConnectionValue, 0);
 		if (mSendValue == SOCKET_ERROR) {
 			printf("Error! bytes not sent");
 		}
-		cout << "Sucess! bytes received = " + mSendValue << endl;
+		cout << "Sucess! bytes received = " + mSendValue << endl;*/
 	}
 
+	memset(&playerbuf, 0, playerbuflen);
+	mConnectionValue = recv(mClientSocket, (char*)&playerbuf, playerbuflen, 0);
+	if (mConnectionValue > 0) {
+		cout << "Sucess! bytes received = " + mConnectionValue << endl;
+		switch (playerbuf->cmdState)
+		{
+		case Command::REGISTER_PLAYER:
+			mGame->mLobby.RegisterPlayer(playerbuf->name);
+			break;
+		case Command::DRAW:
+			break;
+		default:
+			break;
+		}
+	}
 	else {
 		printf("Error! " + WSAGetLastError());
 		return 1;
 	}
+	_endthreadex(0);
 }
-
 
 int main(int argc, char* argv[])
 {
 #pragma region Members
 	BaseNetworkLogic mSL;
-
+	Game mTicTacToe;
+	
 	struct sockaddr_in mServerAddr, mClientAddr;
 	SOCKET mServerSocket, mClientSocket;
 
 	//Integer that contains the length of structure pointed to by the addr parameter.
 	int mSizeOfAddrStruct = sizeof(struct addrinfo);
-
-
 	int mConnectionValue = 1;
+
+	GameBundle mBundle;
+	mBundle.ticTacToe = &mTicTacToe;
 
 #pragma endregion
 
@@ -67,8 +118,10 @@ int main(int argc, char* argv[])
 	// Accept a client socket
 	while (mClientSocket = accept(mServerSocket, NULL, NULL)) 
 	{
+		mBundle.clientSocket = mClientSocket;
+
 		unsigned threadID;
-		HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ClientHandler, (void*)mClientSocket, 0, &threadID);
+		HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ClientHandler, &mBundle, 0, &threadID);
 	}
 
 	closesocket(mClientSocket);

@@ -1,3 +1,3 @@
 ﻿  Main.cpp
-C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\Server\Main.cpp(35): warning C4715: 'ClientSession': not all control paths return a value
+C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\Server\Main.cpp(86): warning C4715: 'ClientHandler': not all control paths return a value
   Server.vcxproj -> C:\Users\ale_a\source\repos\TPMPRecuperatorio\TitTacDoomed\Debug\Server.exe
