@@ -15,6 +15,8 @@ int main(int argc, char* argv[])
 	GenericPacket recvbuf[sizeof(GenericPacket)];
 	int recvbuflen = sizeof(GenericPacket);
 
+	PlayerPacket playerbuf[sizeof(PlayerPacket)];
+	int playerbuflen = sizeof(PlayerPacket);
 	bool mEndSession = false;
 #pragma endregion
 
@@ -37,11 +39,11 @@ int main(int argc, char* argv[])
 #pragma endregion
 
 	Renderer mGrid;
-	GameState mPlayerOrder;
+	GameState mPlayerOrder = GameState::IDLE;
 	string mName;
 	std::string end;
 	recvbuf->aux = 0;
-	recvbuf->gameState = 0;
+	recvbuf->gameState = GameState::CONNECTED;
 
 	// Send an initial buffer
 	if (send(mClientSocket, (char*)&recvbuf, recvbuflen, 0) == SOCKET_ERROR) {
@@ -56,21 +58,20 @@ int main(int argc, char* argv[])
 		mConnectionValue = recv(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
 		if (mConnectionValue > 0)
 			printf("Bytes received: %d\n", mConnectionValue);
-		GameState state = (GameState)recvbuf->gameState;
-		switch (state)
+		switch (recvbuf->gameState)
 		{
 		case GameState::LOBBY:
 			cout << ":::LOBBY:::" << endl	
 				 << "Enter Name" << endl;
 
-			cin >> recvbuf->textAux;
+			cin >> playerbuf->name;
 			
 			cout.clear();
 			cout << ":::LOBBY:::" << endl
 				<< "Waiting For Players..." << endl;
 
-			recvbuf->gameState = 6; //GameState::REGISTER_PLAYER;
-			send(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
+			playerbuf->cmdState = Command::REGISTER_PLAYER;
+			send(mClientSocket, (char*)&playerbuf, playerbuflen, 0);
 
 			break;
 
@@ -86,12 +87,9 @@ int main(int argc, char* argv[])
 				mPlayerOrder = GameState::PLAYER_TWO;
 				cout << "Your are (O), enter values from 0 to 8 to mark a Slot." << endl;
 			}
-
-			memset(&recvbuf, 0, sizeof(recvbuf));
-			memcpy(recvbuf->textAux, mName.c_str(), sizeof(mName));
-
-			recvbuf->gameState = 1; // Command::START_GAME;
-			send(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
+			playerbuf->name = mName;
+			playerbuf->cmdState = Command::START_GAME;
+			send(mClientSocket, (char*)&playerbuf, playerbuflen, 0);
 			break;
 		case GameState::PLAYER_ONE:
 			if (recvbuf->aux != -1)
@@ -106,8 +104,7 @@ int main(int argc, char* argv[])
 				
 				cin >> recvbuf->aux;
 
-				memset(&recvbuf, 0, sizeof(recvbuf));
-				memcpy(recvbuf->textAux, mName.c_str(), sizeof(mName));
+				recvbuf->textAux = mName;
 
 				// Send an initial 
 				sendto(mClientSocket, (char*)&recvbuf, recvbuflen, 0, (struct sockaddr*)&mServerAddr, sizeof(mServerAddr));
@@ -128,11 +125,9 @@ int main(int argc, char* argv[])
 			if (mPlayerOrder == GameState::PLAYER_TWO)
 			{
 				cout << "Your Turn (o), enter values from 0 to 8 to mark a Slot." << endl;
-
 				cin >> recvbuf->aux;
-				memset(&recvbuf, 0, sizeof(recvbuf));
-				memcpy(recvbuf->textAux, mName.c_str(), sizeof(mName));
 
+				recvbuf->textAux = mName;
 				sendto(mClientSocket, (char*)&recvbuf, recvbuflen, 0, (struct sockaddr*)&mServerAddr, sizeof(mServerAddr));
 			}
 			
@@ -145,15 +140,15 @@ int main(int argc, char* argv[])
 		case GameState::FINISH:
 
 			mGrid.Draw();
-			//cout << recvbuf->textAux + " IS THE WINNER!" << endl << "En Session? (Y/N)" << endl;
+			cout << recvbuf->textAux + " IS THE WINNER!" << endl << "En Session? (Y/N)" << endl;
 			cin >> end;
 			if (end == "y")
 			{
 				mEndSession = true;
 			}
 			else
-				recvbuf->gameState = 8; //GameState::REENTER_PLAYER;
-				send(mClientSocket, (char*)&recvbuf, recvbuflen, 0);
+				playerbuf->cmdState = Command::REENTER_PLAYER;
+				send(mClientSocket, (char*)&playerbuf, playerbuflen, 0);
 			break;
 		default:
 			break;
