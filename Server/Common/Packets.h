@@ -4,10 +4,10 @@
 enum class GameState
 {
 	CONNECTED,
+	COIN_TOSS,
 	PLAYER_ONE,
 	PLAYER_TWO,
 	LOBBY,
-	GAME,
 	IDLE,
 	FINISH
 };
@@ -15,13 +15,15 @@ enum class GameState
 enum class Command
 {
 	REGISTER_PLAYER,
-	DRAW
+	START_GAME,
+	REENTER_PLAYER
 };
 
 struct GenericPacket
 {
 	GameState gameState;
 	short int aux;
+	std::string textAux;
 };
 
 struct PlayerPacket

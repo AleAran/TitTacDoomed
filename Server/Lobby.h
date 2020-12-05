@@ -11,6 +11,7 @@ public:
 	~Lobby();
 
 	bool RegisterPlayer(string name, SOCKET mSocket, int size, sockaddr_in addr);
+	bool ReenterPlayer(string name);
 	MatchedPlayers GetMatchedPlayers();
 
 
